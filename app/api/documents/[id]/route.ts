@@ -5,11 +5,12 @@ import { v4 as uuidv4 } from 'uuid'
 
 export async function GET(
   _request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     await connectToDatabase()
-    const document = await DocumentModel.findById(params.id).lean()
+    const document = await DocumentModel.findById(id).lean()
 
     if (!document) {
       return NextResponse.json({ error: 'Document not found' }, { status: 404 })
@@ -24,14 +25,15 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     await connectToDatabase()
     const body = await request.json()
 
     // Get current document to save version
-    const current = await DocumentModel.findById(params.id)
+    const current = await DocumentModel.findById(id)
     if (!current) {
       return NextResponse.json({ error: 'Document not found' }, { status: 404 })
     }
@@ -45,7 +47,7 @@ export async function PUT(
     }
 
     const updated = await DocumentModel.findByIdAndUpdate(
-      params.id,
+      id,
       {
         $set: {
           title: body.title || current.title,
@@ -61,7 +63,7 @@ export async function PUT(
       { new: true }
     ).lean()
 
-    console.info(`[Documents API] Updated document: ${params.id}`)
+    console.info(`[Documents API] Updated document: ${id}`)
     return NextResponse.json(updated)
   } catch (error) {
     console.error('[Documents API] PUT error:', error)
@@ -71,17 +73,18 @@ export async function PUT(
 
 export async function DELETE(
   _request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     await connectToDatabase()
-    const deleted = await DocumentModel.findByIdAndDelete(params.id)
+    const deleted = await DocumentModel.findByIdAndDelete(id)
 
     if (!deleted) {
       return NextResponse.json({ error: 'Document not found' }, { status: 404 })
     }
 
-    console.info(`[Documents API] Deleted document: ${params.id}`)
+    console.info(`[Documents API] Deleted document: ${id}`)
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('[Documents API] DELETE error:', error)

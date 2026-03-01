@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { AIMode, AIResponse, AITask } from '@/types'
+import { AIMode, AITask } from '@/types'
 
 interface AIPanelProps {
   isLoading: boolean
